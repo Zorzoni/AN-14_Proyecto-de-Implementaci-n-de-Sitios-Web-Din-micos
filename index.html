@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Librería de QR por CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 127, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 191, 255, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 0, 127, 0.02) 0%, transparent 50%);
+            animation: backgroundPulse 12s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+        }
+
+        .container {
+            background: #000000;
+            border-radius: 0px;
+            box-shadow: none;
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                #00ff7f 25%, 
+                #00bfff 50%, 
+                #ff007f 75%, 
+                transparent 100%);
+            background-size: 200% 1px;
+            height: 1px;
+            animation: ledLineTop 4s linear infinite;
+            z-index: 1;
+        }
+
+        .container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            background: linear-gradient(0deg, 
+                transparent 0%, 
+                #ff007f 25%, 
+                #00bfff 50%, 
+                #00ff7f 75%, 
+                transparent 100%);
+            background-size: 1px 200%;
+            width: 1px;
+            right: 0;
+            left: auto;
+            animation: ledLineRight 4s linear infinite reverse;
+            z-index: 1;
+        }
+
+        @keyframes ledLineTop {
+            0% { background-position: -100% 0; }
+            100% { background-position: 100% 0; }
+        }
+
+        @keyframes ledLineRight {
+            0% { background-position: 0 -100%; }
+            100% { background-position: 0 100%; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .config-panel {
+            background: #000000;
+            border-radius: 0px;
+            padding: 25px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .config-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff7f, transparent);
+            animation: ledScanSlow 6s linear infinite;
+        }
+
+        .config-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff007f, transparent);
+            animation: ledScanSlow 6s linear infinite reverse;
+        }
+
+        @keyframes ledScanSlow {
+            0% { 
+                background: linear-gradient(90deg, transparent, #00ff7f, transparent);
+                background-position: -100% 0;
+            }
+            50% {
+                background: linear-gradient(90deg, transparent, #00bfff, transparent);
+                background-position: 0% 0;
+            }
+            100% { 
+                background: linear-gradient(90deg, transparent, #ff007f, transparent);
+                background-position: 100% 0;
+            }
+        }
+
+        .config-title {
+            font-size: 1.2em;
+            font-weight: 300;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: none;
+        }
+
+        .qr-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-shadow: none;
+            position: relative;
+            font-weight: 300;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff7f, transparent);
+            animation: ledUnderline 3s ease-in-out infinite;
+        }
+
+        @keyframes ledUnderline {
+            0%, 100% { 
+                background: linear-gradient(90deg, transparent, #00ff7f, transparent);
+                box-shadow: 0 0 2px #00ff7f;
+            }
+            33% { 
+                background: linear-gradient(90deg, transparent, #00bfff, transparent);
+                box-shadow: 0 0 2px #00bfff;
+            }
+            66% { 
+                background: linear-gradient(90deg, transparent, #ff007f, transparent);
+                box-shadow: 0 0 2px #ff007f;
+            }
+        }
+
+        .subtitle {
+            color: #666666;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 300;
+            color: #cccccc;
+            font-size: 14px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 1px;
+            background: #00ff7f;
+            box-shadow: 0 0 3px #00ff7f;
+            animation: labelLed 4s ease-in-out infinite;
+        }
+
+        @keyframes labelLed {
+            0%, 100% { 
+                background: #00ff7f;
+                box-shadow: 0 0 3px #00ff7f;
+            }
+            33% { 
+                background: #00bfff;
+                box-shadow: 0 0 3px #00bfff;
+            }
+            66% { 
+                background: #ff007f;
+                box-shadow: 0 0 3px #ff007f;
+            }
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #333333;
+            border-radius: 0px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #000000;
+            color: #ffffff;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00ff7f;
+            box-shadow: 0 0 0 1px #00ff7f;
+            background: #000000;
+        }
+
+        input[type="text"]::placeholder {
+            color: #555555;
+        }
+
+        /* Estilos para el selector de color RGB */
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            background: #000000;
+            border: 1px solid #333333;
+            border-radius: 0px;
+            transition: all 0.3s ease;
+        }
+
+        .color-picker-wrapper:focus-within {
+            border-color: #00bfff;
+            box-shadow: 0 0 0 1px #00bfff;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 0px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #333333;
+            border-radius: 0px;
+        }
+
+        input[type="color"]::-moz-color-swatch {
+            border: 1px solid #333333;
+            border-radius: 0px;
+        }
+
+        .color-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .color-hex {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .color-preview {
+            font-size: 12px;
+            color: #888888;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #333333;
+            border-radius: 0px;
+            font-size: 14px;
+            background: #000000;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #00bfff;
+            box-shadow: 0 0 0 1px #00bfff;
+        }
+
+        select option {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .btn {
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #333333;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 0px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 300;
+            margin: 10px 0;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff7f, transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff7f, transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            border-color: #00ff7f;
+            color: #00ff7f;
+        }
+
+        .btn:hover::before,
+        .btn:hover::after {
+            opacity: 1;
+        }
+
+        .btn:active {
+            transform: none;
+        }
+
+        .btn:disabled {
+            background: #000000;
+            color: #333333;
+            border-color: #333333;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled::before,
+        .btn:disabled::after {
+            opacity: 0;
+        }
+
+        .btn-download {
+            border-color: #00bfff;
+        }
+
+        .btn-download:hover {
+            border-color: #00bfff;
+            color: #00bfff;
+        }
+
+        .btn-download:hover::before,
+        .btn-download:hover::after {
+            background: linear-gradient(90deg, transparent, #00bfff, transparent);
+        }
+
+        #qrcode {
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 0px;
+            background: #000000;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #333333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #qrcode::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff007f, transparent);
+            animation: qrTopLine 5s linear infinite;
+        }
+
+        #qrcode::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, #00bfff, transparent);
+            animation: qrRightLine 5s linear infinite;
+        }
+
+        @keyframes qrTopLine {
+            0%, 100% { 
+                background: linear-gradient(90deg, transparent, #ff007f, transparent);
+                background-position: -100% 0;
+            }
+            50% { 
+                background: linear-gradient(90deg, transparent, #00ff7f, transparent);
+                background-position: 100% 0;
+            }
+        }
+
+        @keyframes qrRightLine {
+            0%, 100% { 
+                background: linear-gradient(180deg, transparent, #00bfff, transparent);
+                background-position: 0 -100%;
+            }
+            50% { 
+                background: linear-gradient(180deg, transparent, #ff007f, transparent);
+                background-position: 0 100%;
+            }
+        }
+
+        #qrcode canvas, #qrcode img {
+            border-radius: 0px;
+            box-shadow: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hint {
+            background: #000000;
+            border-left: 1px solid #00ff7f;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0px;
+            font-size: 14px;
+            color: #cccccc;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            font-weight: 300;
+        }
+
+        .hint::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(180deg, #00ff7f, #00bfff, #ff007f);
+            animation: hintLine 4s ease-in-out infinite;
+        }
+
+        @keyframes hintLine {
+            0%, 100% { 
+                background: linear-gradient(180deg, #00ff7f, #00bfff);
+            }
+            50% { 
+                background: linear-gradient(180deg, #ff007f, #00ff7f);
+            }
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 0px;
+            margin: 10px 0;
+            font-weight: 300;
+            border: 1px solid transparent;
+        }
+
+        .status.success {
+            background: #000000;
+            color: #00ff7f;
+            border-color: #00ff7f;
+        }
+
+        .status.error {
+            background: #000000;
+            color: #ff007f;
+            border-color: #ff007f;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333333;
+            color: #555555;
+            font-size: 12px;
+            font-weight: 300;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .config-panel {
+                order: 2;
+            }
+
+            .qr-panel {
+                order: 1;
+            }
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { 
+                transform: scale(1);
+                filter: hue-rotate(0deg);
+            }
+            50% { 
+                transform: scale(1.1);
+                filter: hue-rotate(180deg);
+            }
+        }
+
+        /* Animación para el QR */
+        .qr-appear {
+            animation: fadeInScale 0.5s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generador de Código QR</h1>
+        <p class="subtitle">Ingresá un link y generá el QR para compartirlo donde quieras.</p>
+        
+        <div class="main-content">
+            <!-- Panel de Configuración -->
+            <div class="config-panel">
+                <h3 class="config-title">Configuración</h3>
+                
+                <div class="form-group">
+                    <label for="colorPicker">Color del QR</label>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="colorPicker" value="#000000">
+                        <div class="color-info">
+                            <div class="color-hex" id="colorHex">#000000</div>
+                            <div class="color-preview">Hacé clic para elegir color</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="size">Tamaño</label>
+                    <select id="size">
+                        <option value="128">128px (Pequeño)</option>
+                        <option value="192">192px (Mediano)</option>
+                        <option value="256" selected>256px (Grande)</option>
+                        <option value="320">320px (Extra Grande)</option>
+                        <option value="384">384px (Jumbo)</option>
+                    </select>
+                </div>
+
+                <div class="hint">
+                    <strong>Consejos:</strong><br>
+                    • Probá el QR con la cámara del celular<br>
+                    • Asegurate que tu URL sea válida<br>
+                    • El tamaño grande es mejor para imprimir<br>
+                    • Elegí colores con buen contraste
+                </div>
+            </div>
+
+            <!-- Panel de Generación -->
+            <div class="qr-panel">
+                <div class="form-group" style="width: 100%;">
+                    <label for="link">URL del Proyecto</label>
+                    <input type="text" id="link" placeholder="Pegá acá tu link (GitHub, Netlify, Vercel, PDF, etc.)" autocomplete="url">
+                </div>
+
+                <button class="btn" onclick="generateQR()">Generar QR</button>
+                
+                <div id="status"></div>
+                
+                <div id="qrcode">
+                    <div style="color: #888; text-align: center; position: relative; z-index: 2;">
+                        <div style="font-size: 3em; margin-bottom: 10px; animation: iconPulse 2s ease-in-out infinite;">📱</div>
+                        <p>Tu código QR aparecerá aquí</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-download" onclick="downloadQR()" id="downloadBtn" disabled>Descargar QR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let qrInstance = null;
+
+        // Actualizar display del color seleccionado
+        document.getElementById('colorPicker').addEventListener('input', function() {
+            const color = this.value;
+            document.getElementById('colorHex').textContent = color.toUpperCase();
+        });
+
+        // Función para mostrar mensajes de estado
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // Función para validar URL
+        function isValidURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                // Si no tiene protocolo, intentar agregarlo
+                try {
+                    new URL('https://' + string);
+                    return string;
+                } catch (_) {
+                    return false;
+                }
+            }
+        }
+
+        // Genera el QR con los datos ingresados
+        function generateQR() {
+            let link = document.getElementById('link').value.trim();
+            const color = document.getElementById('colorPicker').value;
+            const size = parseInt(document.getElementById('size').value);
+
+            if (!link) {
+                showStatus("Por favor, ingresá una URL válida.", 'error');
+                return;
+            }
+
+            // Validar y corregir URL si es necesario
+            if (!link.startsWith('http://') && !link.startsWith('https://')) {
+                if (link.includes('.') && !link.includes(' ')) {
+                    link = 'https://' + link;
+                    document.getElementById('link').value = link;
+                } else {
+                    showStatus("La URL debe ser válida (ej: https://github.com/tu-usuario)", 'error');
+                    return;
+                }
+            }
+
+            const urlValidation = isValidURL(link);
+            if (!urlValidation) {
+                showStatus("La URL ingresada no es válida.", 'error');
+                return;
+            }
+
+            try {
+                // Limpiar el QR previo
+                const qrcodeDiv = document.getElementById('qrcode');
+                qrcodeDiv.innerHTML = "";
+
+                // Crear nuevo QR
+                qrInstance = new QRCode(qrcodeDiv, {
+                    text: link,
+                    width: size,
+                    height: size,
+                    colorDark: color,
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H // Alta corrección de errores
+                });
+
+                // Añadir animación
+                setTimeout(() => {
+                    const qrElement = qrcodeDiv.firstChild;
+                    if (qrElement) {
+                        qrElement.classList.add('qr-appear');
+                    }
+                }, 100);
+
+                // Habilitar botón de descarga
+                document.getElementById('downloadBtn').disabled = false;
+                
+                showStatus(`¡QR generado exitosamente en color ${color.toUpperCase()}! Ahora podés descargarlo.`, 'success');
+                
+            } catch (error) {
+                showStatus("Error al generar el QR. Intentá de nuevo.", 'error');
+                console.error('Error generating QR:', error);
+            }
+        }
+
+        // Descarga el QR como imagen PNG
+        function downloadQR() {
+            const img = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
+            
+            if (!img) {
+                showStatus("Primero generá el QR antes de descargarlo.", 'error');
+                return;
+            }
+
+            try {
+                let dataUrl;
+                
+                if (img.tagName.toLowerCase() === 'canvas') {
+                    dataUrl = img.toDataURL("image/png");
+                } else {
+                    dataUrl = img.src;
+                }
+
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString().slice(0, 10);
+                const colorHex = document.getElementById('colorPicker').value.replace('#', '');
+                link.href = dataUrl;
+                link.download = `qr-code-${colorHex}-${timestamp}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showStatus("📥 ¡QR descargado exitosamente!", 'success');
+                
+            } catch (error) {
+                showStatus("Error al descargar el QR. Intentá de nuevo.", 'error');
+                console.error('Error downloading QR:', error);
+            }
+        }
+
+        // Generar QR al presionar Enter en el input
+        document.getElementById('link').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+
+        // Limpiar mensajes de estado cuando se empieza a escribir
+        document.getElementById('link').addEventListener('input', function() {
+            document.getElementById('status').innerHTML = '';
+        });
+
+        // Validación en tiempo real
+        document.getElementById('link').addEventListener('blur', function() {
+            const link = this.value.trim();
+            if (link && !link.startsWith('http://') && !link.startsWith('https://')) {
+                if (link.includes('.') && !link.includes(' ')) {
+                    this.value = 'https://' + link;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
